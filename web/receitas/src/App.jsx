@@ -40,7 +40,6 @@ function App() {
         const jsonResponse = await fetch('/mockups/receitas.json');
         const jsonData = await jsonResponse.json();
         const apiResponse = await axios.get('http://localhost:3001/receitas');
-
         setReceitas([...jsonData.receitas, ...apiResponse.data]);
       } catch (error) {
         console.error("Erro ao buscar receitas:", error);
@@ -49,27 +48,12 @@ function App() {
     fetchData();
   }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const novaReceita = {
-        ...form,
-        ingredientes: form.ingredientes.split(',').map(i => i.trim())
-      };
-      const response = await axios.post('http://localhost:3001/receitas', novaReceita);
-      setReceitas(prev => [...prev, response.data]);
-      setForm({ nome: '', ingredientes: '', modoPreparo: '', imagem: '' });
-    } catch (error) {
-      console.error("Erro ao cadastrar receita:", error);
-    }
-  };
 
   return (
     <>
       <header>
         <h1>Catálogo de Receitas</h1>
       </header>
-
       <main className="card-container">
         {receitas.map((receita, idx) => (
           <div className="card" key={receita.id || idx}>
