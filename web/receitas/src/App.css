@@ -1,54 +1,44 @@
-#root {
-  width: 100vw;
-  min-height: 100vh;
+body{
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  width: 100vw;
+  height: 100vh;
+  color: var(--c4);
 }
 
-header,
-footer {
+header, footer{
   width: 100%;
-  padding: 1rem;
-  background-color: var(--c2);
-  box-shadow: 0 2px 4px var(--t1);
+  height: 10vh;
+  background-color: var(--c1);
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-around;
 }
 
-main {
+main{
   width: 100%;
-  max-width: 800px;
-  height: fit-content;
-  padding: 2rem;
+  height: 80vh;
   background-color: var(--c1);
-  box-shadow: 0 2px 4px var(--t1);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
   overflow-y: auto;
 }
 
-.card {
-  width: 100%;
-  max-width: 300px;
-  padding: 1rem;
-  background-color: var(--c3);
-  box-shadow: 0 2px 4px var(--t1);
+.card{
+  background-color: var(--c2);
+  border: 1px solid var(--c3);
   border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-}
-
-.card img {
-  max-width: 100%;
-  height: auto;
-  border-radius: 4px;
+  padding: 16px;
+  margin: 8px;
+  width: 300px;
+  text-align: center;
+  & img{
+    max-width: 100%;
+    border-radius: 4px;
+  }
 }

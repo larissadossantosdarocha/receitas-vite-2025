@@ -1,80 +1,42 @@
-import { useEffect, useState } from 'react'
-import './App.css'
+import { useEffect, useState } from 'react';
+import './App.css';
+import axios from 'axios';
 
-function Modal({ receita, onClose }) {
-  if (!receita) return null
-
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div
-        className="modal"
-        onClick={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
-        aria-label={`Receita de ${receita.titulo}`}
-      >
-        <h2>{receita.titulo}</h2>
-        <h3>Ingredientes:</h3>
-        <ul>
-          {receita.ingredientes.map((ing, idx) => (
-            <li key={idx}>{ing}</li>
-          ))}
-        </ul>
-        <h3>Modo de Preparo:</h3>
-        <p>{receita.modoPreparo}</p>
-        <button onClick={onClose}>Fechar</button>
-      </div>
-    </div>
-  )
-}
-
-export default function App() {
-  const [receitas, setReceitas] = useState([])
-  const [modalReceita, setModalReceita] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+function App() {
+  const [receitas, setReceitas] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        const response = await fetch('/mockups/receitas.json')
-        if (!response.ok) throw new Error(`HTTP ${response.status}`)
-        const data = await response.json()
-        setReceitas(data.receitas)
-      } catch (err) {
-        setError(err.message)
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchData()
-  }, [])
+      const result = await axios(
+        'http://localhost:3001/receitas', 
+      );
+      setReceitas(result.data);
+    };
+    fetchData();
+  }, []);
 
-  return (
+  return(
     <>
-      <header>
-        <h1>Receitas</h1>
-      </header>
-
-      <main className="card-container">
-        {loading && <p>Carregando receitas...</p>}
-        {error && <p style={{ color: 'crimson' }}>Erro: {error}</p>}
-
-        {receitas.map((receita) => (
-          <article className="card" key={receita.id}>
-            <h2>{receita.titulo}</h2>
-            <h3>Ilustração:</h3>
-            <img src={receita.imagem} alt={receita.titulo} />
-            <button onClick={() => setModalReceita(receita)}>Ver Receita</button>
-          </article>
-        ))}
-      </main>
-
-      <footer>
-        <p>Receitas do Fessor © 2025</p>
-      </footer>
-
-      <Modal receita={modalReceita} onClose={() => setModalReceita(null)} />
+    <header>
+      <h1>Catálogo de Receitas</h1>
+    </header>
+    <main>
+      {
+        receitas.map(receita => (
+          <div key={receita.id} className="card">
+            <h2>Receita: {receita.nome}</h2> 
+            <p>Ingredientes: {receita.ingredientes}</p> 
+            <p>Modo de Preparo: {receita.modoPreparo}</p> 
+            <img src={receita.imagem} alt={receita.nome} /> 
+          </div>
+        ))
+      }
+    </main>
+    <footer>
+      <p>By Larissa</p>
+    </footer>
     </>
   )
 }
+
+export default App;

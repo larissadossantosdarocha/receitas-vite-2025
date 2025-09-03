@@ -3,7 +3,7 @@ const prisma = new PrismaClient();
 
 const readAll = async (req, res) => {
     try {
-        const receitas = await prisma.receitas.findMany();
+        const receitas = await prisma.receita.findMany();
         res.json(receitas);
     } catch (error) {
         console.error("Erro ao buscar receitas:", error);
@@ -14,22 +14,22 @@ const readAll = async (req, res) => {
 const readOne = async (req, res) => {
     const { id } = req.params;
     try {
-        const receitas = await prisma.receitas.findUnique({
+        const receita = await prisma.receita.findUnique({ 
             where: { id: Number(id) }
         });
-        if (!receitas) {
+        if (!receita) {
             return res.status(404).json({ error: "Receita não encontrada" });
         }
-        res.json(receitas);
+        res.json(receita);
     } catch (error) {
-        console.error("Erro ao buscar receitas:", error);
+        console.error("Erro ao buscar receita:", error);
         res.status(500).json({ error: "Erro interno do servidor" });
     }
 };
 
 const create = async (req, res) => {
     try {
-        const novaReceita = await prisma.receitas.create({
+        const novaReceita = await prisma.receita.create({ 
             data: req.body
         });
         res.status(201).json(novaReceita);
@@ -42,7 +42,7 @@ const create = async (req, res) => {
 const update = async (req, res) => {
     const { id } = req.params;
     try {
-        const receitaAtualizada = await prisma.receitas.update({
+        const receitaAtualizada = await prisma.receita.update({
             where: { id: Number(id) },
             data: req.body
         });
@@ -56,7 +56,7 @@ const update = async (req, res) => {
 const del = async (req, res) => {
     const { id } = req.params;
     try {
-        await prisma.receitas.delete({
+        await prisma.receita.delete({ 
             where: { id: Number(id) }
         });
         res.status(204).send();
