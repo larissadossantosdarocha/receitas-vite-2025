@@ -35,7 +35,7 @@ main {
 
 .card {
   width: 100%;
-  max-width: 300px;
+  max-width: 200px;
   padding: 1rem;
   background-color: var(--c3);
   box-shadow: 0 2px 4px var(--t1);
