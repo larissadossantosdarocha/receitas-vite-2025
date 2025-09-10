@@ -16,6 +16,12 @@ npm run deploy
 
 npm run dev
 
+## . env desse projeto:
+
+DATABASE_URL="mysql://root:@localhost:3306/catalogoreceitaapi"
+
+
+
 
 
  
