@@ -1,3 +1,9 @@
+## Imagens
+screenshot  
+    ![Screenshot](Captura%20de%20tela%202025-09-03%20110458.png)
+    ![Screenshot](Captura%20de%20tela%202025-09-03%20112906.png)
+    ![Screenshot](Captura%20de%20tela%202025-09-03%20141319.png)
+ 
 ## Para fazer o deploy rapidamente baixe a extensão "gh-pages" do npm
 
 npm i gh-pages --save-dev
@@ -10,12 +16,13 @@ npm run deploy
 
 npm run dev
 
-### Imagens
+## . env desse projeto:
 
-screenshot  
-    ![Screenshot](Captura%20de%20tela%202025-09-03%20110458.png)
-    ![Screenshot](Captura%20de%20tela%202025-09-03%20112906.png)
-    ![Screenshot](Captura%20de%20tela%202025-09-03%20141319.png)
- 
+DATABASE_URL="mysql://root:@localhost:3306/catalogoreceitaapi"
+
+
+
+
+
  
 
