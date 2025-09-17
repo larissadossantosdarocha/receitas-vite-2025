@@ -5,15 +5,17 @@ import axios from 'axios';
 function Modal({ receita, onClose }) {
   if (!receita) return null;
 
+  const ingredientes = Array.isArray(receita.ingredientes)
+    ? receita.ingredientes
+    : receita.ingredientes.split(',').map(i => i.trim());
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
-        <h2>{receita.titulo}</h2>
+        <h2>{receita.nome}</h2>
         <h3>Ingredientes:</h3>
         <ul>
-          {Array.isArray(receita.ingredientes)
-            ? receita.ingredientes.map((ing, idx) => <li key={idx}>{ing}</li>)
-            : <li>{receita.ingredientes}</li>}
+          {ingredientes.map((ing, idx) => <li key={idx}>{ing}</li>)}
         </ul>
         <h3>Modo de Preparo:</h3>
         <p>{receita.modoPreparo}</p>
@@ -34,9 +36,9 @@ function FormModal({ form, setForm, onClose, onSubmit }) {
         <h2>{form.id && !form.isLocal ? 'Editar Receita' : 'Nova Receita'}</h2>
         <form onSubmit={onSubmit}>
           <input
-            name="titulo"
-            placeholder="Título"
-            value={form.titulo}
+            name="nome"
+            placeholder="Nome"
+            value={form.nome}
             onChange={handleChange}
             required
           />
@@ -78,29 +80,42 @@ function App() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Receitas JSON local
-        const jsonResponse = await axios.get('/mockups/receitas.json');
-        const jsonData = jsonResponse.data;
+        // Carrega receitas locais do localStorage
+        let receitasLocais = [];
+        const localData = localStorage.getItem('receitasLocal');
+        if (localData) {
+          receitasLocais = JSON.parse(localData);
+        } else {
+          // Se não existir no localStorage, carrega do JSON estático
+          const jsonResponse = await axios.get('/mockups/receitas.json');
+          receitasLocais = (jsonResponse.data.receitas || []).map(r => ({
+            ...r,
+            id: `local-${r.id || Math.random()}`,
+            nome: r.titulo || r.nome || "Sem nome",
+            ingredientes: r.ingredientes,
+            modoPreparo: r.modoPreparo,
+            imagem: r.imagem,
+            isLocal: true
+          }));
+          localStorage.setItem('receitasLocal', JSON.stringify(receitasLocais));
+        }
 
-        // Receitas API
+        // Carrega receitas da API
         const apiResponse = await axios.get('http://localhost:3001/receitas');
-
-        const receitasJson = (jsonData.receitas || []).map(r => ({
-          ...r,
-          id: `local-${r.id || Math.random()}`,
-          isLocal: true
-        }));
-
         const receitasApi = (apiResponse.data || []).map(r => ({
           ...r,
+          ingredientes: r.ingredientes ? r.ingredientes.split(',').map(i => i.trim()) : [],
+          modoPreparo: r.modoFazer,
+          imagem: r.img,
           isLocal: false
         }));
 
-        setReceitas([...receitasJson, ...receitasApi]);
+        setReceitas([...receitasLocais, ...receitasApi]);
       } catch (err) {
         console.error('Erro ao buscar receitas:', err);
       }
     };
+
     fetchData();
   }, []);
 
@@ -111,7 +126,7 @@ function App() {
         : receita.ingredientes;
       setFormModal({ ...receita, ingredientes: ingStr });
     } else {
-      setFormModal({ titulo: '', ingredientes: '', modoPreparo: '', imagem: '' });
+      setFormModal({ nome: '', ingredientes: '', modoPreparo: '', imagem: '' });
     }
   };
 
@@ -121,25 +136,36 @@ function App() {
     e.preventDefault();
 
     const payload = {
-      titulo: formModal.titulo,
+      nome: formModal.nome,
       ingredientes: formModal.ingredientes.split(',').map(i => i.trim()),
-      modoPreparo: formModal.modoPreparo,
-      imagem: formModal.imagem
+      modoFazer: formModal.modoPreparo,
+      img: formModal.imagem
     };
 
     try {
       if (formModal.id && !formModal.isLocal) {
-        // Edita receita da API
+        // Atualiza no banco (API)
         const res = await axios.patch(`http://localhost:3001/receitas/${formModal.id}`, payload);
-        setReceitas(receitas.map(r => r.id === formModal.id ? res.data : r));
+        setReceitas(receitas.map(r =>
+          r.id === formModal.id
+            ? { ...res.data, ingredientes: res.data.ingredientes.split(',').map(i => i.trim()), modoPreparo: res.data.modoFazer, imagem: res.data.img }
+            : r
+        ));
       } else if (formModal.id && formModal.isLocal) {
-        // Edita receita local
-        setReceitas(receitas.map(r => r.id === formModal.id ? { ...r, ...payload } : r));
+        // Atualiza local
+        const updated = receitas.map(r =>
+          r.id === formModal.id
+            ? { ...r, ...payload, modoPreparo: payload.modoFazer, imagem: payload.img }
+            : r
+        );
+        setReceitas(updated);
+        localStorage.setItem('receitasLocal', JSON.stringify(updated));
       } else {
-        // Nova receita API
+        // Cria nova receita no banco (API)
         const res = await axios.post('http://localhost:3001/receitas', payload);
-        setReceitas([...receitas, res.data]);
+        setReceitas([...receitas, { ...res.data, ingredientes: res.data.ingredientes.split(',').map(i => i.trim()), modoPreparo: res.data.modoFazer, imagem: res.data.img }]);
       }
+
       handleCloseFormModal();
     } catch (err) {
       console.error(err);
@@ -149,10 +175,14 @@ function App() {
 
   const handleDelete = async (receita) => {
     if (receita.isLocal) {
-      setReceitas(receitas.filter(r => r.id !== receita.id));
+      const updated = receitas.filter(r => r.id !== receita.id);
+      setReceitas(updated);
+      localStorage.setItem('receitasLocal', JSON.stringify(updated));
       return;
     }
+
     if (!window.confirm('Deseja realmente excluir esta receita?')) return;
+
     try {
       await axios.delete(`http://localhost:3001/receitas/${receita.id}`);
       setReceitas(receitas.filter(r => r.id !== receita.id));
@@ -171,8 +201,8 @@ function App() {
       <main className="card-container">
         {receitas.map(r => (
           <div className="card" key={r.id}>
-            <h2>{r.titulo}</h2>
-            {r.imagem ? <img src={r.imagem} alt={r.titulo} /> : <div className="placeholder">Sem imagem</div>}
+            <h2>{r.nome}</h2>
+            {r.imagem ? <img src={r.imagem} alt={r.nome} /> : <div className="placeholder">Sem imagem</div>}
 
             <button className="btn-ver" onClick={() => setModalReceita(r)}>Ver Receita</button>
 
@@ -189,7 +219,6 @@ function App() {
         <button onClick={() => handleOpenFormModal()}>Novo</button>
       </footer>
 
-      {/* Modais */}
       <Modal receita={modalReceita} onClose={() => setModalReceita(null)} />
       <FormModal form={formModal} setForm={setFormModal} onClose={handleCloseFormModal} onSubmit={handleSubmit} />
     </>

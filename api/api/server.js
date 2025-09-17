@@ -1,14 +1,21 @@
-const express = require("express");
-const cors = require("cors");
+const express = require('express');
+const cors = require('cors');
+const receitas = require('../src/controllers/receitas'); // caminho correto para o controller
 
 const app = express();
-const port = process.env.PORT || 3001
-const routes = require("../src/routes");
-    
 app.use(cors());
 app.use(express.json());
-app.use("/", routes);
 
-app.listen(port, () => {
-    console.log(`API respondendo em http://localhost:${port}`);
-});
+// Rotas da API
+app.get('/receitas', receitas.readAll);           // Listar todas
+app.get('/receitas/:id', receitas.readOne);       // Buscar por id
+app.post('/receitas', receitas.create);           // Criar nova receita
+app.put('/receitas/:id', receitas.update);        // Atualizar receita inteira
+app.patch('/receitas/:id', receitas.update);      // Atualizar parcialmente
+app.delete('/receitas/:id', receitas.del);        // Deletar receita
+
+// Rota raiz para testar se API está rodando
+app.get('/', (req, res) => res.send('API de Receitas funcionando!'));
+
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => console.log(`API rodando em http://localhost:${PORT}`));
